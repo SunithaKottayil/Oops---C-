@@ -1,381 +1,315 @@
-// Import necessary system libraries for basic functionality
-using System; // For Console input/output and basic operations
-using System.Collections.Generic; // For using List<T> collections
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-// CLASS DEFINITION: Product
-// Purpose: Represents individual items sold in the bakery with inventory tracking
-// Real-world equivalent: A physical product like bread, cake, etc. with stock count
+/// <summary>
+/// Enum for product categories, making it robust and type-safe.
+/// </summary>
+public enum ProductCategory
+{
+    Bread,
+    Cake,
+    Pastry,
+    Cookie,
+    Muffin,
+    Other
+}
+
+/// <summary>
+/// Product class: represents a bakery product, with encapsulation and validation.
+/// </summary>
 public class Product
 {
-    // PROPERTIES: Store the essential information about each product
-    public string Name;        // What the product is called (e.g., "Chocolate Cake")
-    public decimal Price;      // How much it costs (using decimal for money precision)
-    public string Category;    // What type of item it is (bread, cake, pastry, etc.)
-    public int Stock;          // How many items we have left in inventory
-    
-    // CONSTRUCTOR: Special method that runs when creating a new Product object
-    // Purpose: Initialize a new product with its basic information and starting inventory
-    public Product(string name, decimal price, string category, int initialStock)
+    public Guid ProductId { get; } = Guid.NewGuid();
+    public string Name { get; private set; }
+    public decimal Price { get; private set; }
+    public ProductCategory Category { get; private set; }
+    private int stock;
+    public int Stock
     {
-        this.Name = name;           // Store the product name in this object
-        this.Price = price;         // Store the price in this object
-        this.Category = category;   // Store the category in this object
-        this.Stock = initialStock;  // Store how many we have in stock
-        // Note: "this." refers to the current object being created
+        get => stock;
+        private set => stock = (value >= 0) ? value : 0;
     }
-    
-    // METHOD: Check if product is available for purchase
-    // Purpose: See if we have any items left in stock
-    public bool IsAvailable()
+
+    public Product(string name, decimal price, ProductCategory category, int initialStock)
     {
-        return Stock > 0;  // Returns true if we have stock, false if sold out
+        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name can't be empty.");
+        if (price < 0) throw new ArgumentOutOfRangeException(nameof(price), "Price can't be negative.");
+        Name = name;
+        Price = price;
+        Category = category;
+        Stock = initialStock;
     }
-    
-    // METHOD: Reduce stock when item is sold
-    // Purpose: Update inventory when customer buys this product
-    public bool TakeFromStock()
+
+    public bool IsAvailable(int quantity = 1) => Stock >= quantity;
+
+    public bool ReduceStock(int quantity)
     {
-        if (Stock > 0)      // Check if we have any left
+        if (quantity <= 0) return false;
+        if (Stock >= quantity)
         {
-            Stock--;        // Reduce stock by 1
-            return true;    // Successfully took item from stock
+            Stock -= quantity;
+            return true;
         }
-        return false;       // No stock available
+        return false;
     }
-    
-    // METHOD: Display product information with stock status
-    // Purpose: Print the product details including availability
+
+    public void Restock(int quantity)
+    {
+        if (quantity > 0) Stock += quantity;
+    }
+
     public void Show()
     {
-        if (IsAvailable())  // If we have stock
-        {
-            // Show product with stock count: "Chocolate Cake - $25.99 (Cake) - 5 left"
-            Console.WriteLine($"{Name} - ${Price} ({Category}) - {Stock} left");
-        }
-        else  // If sold out
-        {
-            // Show product as out of stock: "Chocolate Cake - $25.99 (Cake) - OUT OF STOCK"
-            Console.WriteLine($"{Name} - ${Price} ({Category}) - OUT OF STOCK");
-        }
+        string status = Stock > 0 ? $"{Stock} left" : "OUT OF STOCK";
+        Console.WriteLine($"{Name} - {Price:C} ({Category}) - {status}");
     }
 }
 
-// CLASS DEFINITION: Customer
-// Purpose: Represents people who buy from the bakery
-// Real-world equivalent: A person walking into the bakery
+/// <summary>
+/// Customer class: now includes a unique ID for tracking.
+/// </summary>
 public class Customer
 {
-    // PROPERTIES: Store customer information
-    public string Name;  // Customer's name
-    public string Phone; // Customer's phone number (optional)
-    
-    // CONSTRUCTOR: Create a new customer
-    // Purpose: Initialize customer information when they place an order
+    public Guid CustomerId { get; } = Guid.NewGuid();
+    public string Name { get; private set; }
+    public string Phone { get; private set; }
+
     public Customer(string name, string phone = "")
     {
-        this.Name = name;   // Store customer name
-        this.Phone = phone; // Store phone number (default to empty string if not provided)
-        // Note: phone = "" means phone is optional when creating a Customer
+        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Customer name required.");
+        Name = name;
+        Phone = phone ?? "";
     }
 }
 
-// CLASS DEFINITION: Order
-// Purpose: Represents what a customer wants to purchase
-// Real-world equivalent: A receipt or order form
+/// <summary>
+/// OrderItem: One line in an order, decouples order from product inventory.
+/// </summary>
+public class OrderItem
+{
+    public Product Product { get; }
+    public int Quantity { get; }
+    public decimal LineTotal => Product.Price * Quantity;
+
+    public OrderItem(Product product, int quantity)
+    {
+        if (product == null) throw new ArgumentNullException(nameof(product));
+        if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be positive.");
+
+        Product = product;
+        Quantity = quantity;
+    }
+}
+
+/// <summary>
+/// Order class: stores customer, items, and timestamp. Uses OrderItem for quantities.
+/// </summary>
 public class Order
 {
-    // PROPERTIES: Store order information
-    public Customer Buyer;        // Who is making this order
-    public List<Product> Items;   // List of products they want to buy
-    public DateTime When;         // When the order was placed
-    
-    // CONSTRUCTOR: Create a new order for a customer
-    // Purpose: Start a new order and record when it was made
+    public Guid OrderId { get; } = Guid.NewGuid();
+    public Customer Buyer { get; }
+    public List<OrderItem> Items { get; }
+    public DateTime When { get; }
+
     public Order(Customer customer)
     {
-        this.Buyer = customer;                    // Remember who this order belongs to
-        this.Items = new List<Product>();         // Create empty list to store products
-        this.When = DateTime.Now;                 // Record current date/time
-        // Note: List<Product>() creates a new empty list that can hold Product objects
+        Buyer = customer ?? throw new ArgumentNullException(nameof(customer));
+        Items = new List<OrderItem>();
+        When = DateTime.Now;
     }
-    
-    // METHOD: Try to add a product to this order
-    // Purpose: When customer selects an item, check stock and add it to their order
-    public bool TryAdd(Product item)
+
+    public bool TryAdd(Product product, int quantity)
     {
-        if (!item.IsAvailable())  // Check if item is out of stock
+        if (!product.IsAvailable(quantity))
         {
-            Console.WriteLine($"Sorry! {item.Name} is OUT OF STOCK");
-            return false;  // Could not add item
+            Console.WriteLine($"Sorry! Only {product.Stock} of {product.Name} available.");
+            return false;
         }
-        
-        if (item.TakeFromStock())  // Try to take item from inventory
+        if (product.ReduceStock(quantity))
         {
-            Items.Add(item);                          // Add the product to the order's item list
-            Console.WriteLine($"Added {item.Name} (Stock remaining: {item.Stock})");
-            return true;   // Successfully added item
+            Items.Add(new OrderItem(product, quantity));
+            Console.WriteLine($"Added {quantity} x {product.Name} (Stock remaining: {product.Stock})");
+            return true;
         }
-        else
-        {
-            Console.WriteLine($"Sorry! {item.Name} just sold out!");
-            return false;  // Could not add item
-        }
+        return false;
     }
-    
-    // METHOD: Calculate total cost of all items in order
-    // Purpose: Add up the price of everything the customer is buying
-    public decimal Total()
-    {
-        decimal sum = 0;              // Start with zero total
-        foreach(var item in Items)    // Loop through each product in the order
-        {
-            sum += item.Price;        // Add each product's price to the running total
-        }
-        return sum;                   // Return the final total amount
-        // Note: foreach loops through each item in the Items list automatically
-    }
-    
-    // METHOD: Print a receipt for this order
-    // Purpose: Show customer what they bought and how much it costs
+
+    public decimal Total() => Items.Sum(item => item.LineTotal);
+
     public void PrintReceipt()
     {
-        if (Items.Count == 0)  // Check if order is empty
+        if (!Items.Any())
         {
             Console.WriteLine($"\nNo items purchased for {Buyer.Name}");
             return;
         }
-        
-        Console.WriteLine();          // Print empty line for spacing
-        
-        // Print receipt header with customer name
-        Console.WriteLine($"ORDER FOR: {Buyer.Name}");
-        
-        // Print when the order was placed, formatted nicely
-        Console.WriteLine($"TIME: {When.ToString("MM/dd/yyyy HH:mm")}");
-        
-        // Print separator line to make receipt look professional
+        Console.WriteLine($"\nORDER FOR: {Buyer.Name}");
+        Console.WriteLine($"TIME: {When:MM/dd/yyyy HH:mm}");
         Console.WriteLine("----------------------------");
-        
-        // Loop through each item and print it with price
-        foreach(var item in Items)
-        {
-            // Print each item in format: "Chocolate Cake .... $25.99"
-            Console.WriteLine($"{item.Name} .... ${item.Price}");
-        }
-        
-        // Print bottom separator line
+        foreach (var item in Items)
+            Console.WriteLine($"{item.Quantity} x {item.Product.Name} .... {item.LineTotal:C}");
         Console.WriteLine("----------------------------");
-        
-        // Print total amount due
-        Console.WriteLine($"TOTAL: ${Total()}");
-        
-        Console.WriteLine(); // Print empty line for spacing
+        Console.WriteLine($"TOTAL: {Total():C}\n");
     }
 }
 
-// CLASS DEFINITION: Bakery
-// Purpose: The main business system that manages everything
-// Real-world equivalent: The bakery business itself
+/// <summary>
+/// The core Bakery business logic: manages products, orders, and reports.
+/// </summary>
 public class Bakery
 {
-    // PROPERTIES: Store bakery business information
-    public string Name;                    // Name of the bakery
-    private List<Product> products;        // All products available for sale
-    private List<Order> todaysOrders;      // All orders placed today
-    // Note: "private" means only this class can access these variables directly
-    
-    // CONSTRUCTOR: Create a new bakery business
-    // Purpose: Set up a new bakery with empty inventory and no orders
+    public string Name { get; }
+    private readonly List<Product> products = new();
+    private readonly List<Order> todaysOrders = new();
+
     public Bakery(string bakeryName)
     {
-        this.Name = bakeryName;                          // Store the bakery's name
-        this.products = new List<Product>();             // Create empty product list
-        this.todaysOrders = new List<Order>();           // Create empty order list
+        if (string.IsNullOrWhiteSpace(bakeryName)) throw new ArgumentException("Bakery name required.");
+        Name = bakeryName;
     }
-    
-    // METHOD: Add new products to the bakery's menu with initial stock
-    // Purpose: Stock the bakery with items to sell
-    public void AddToMenu(string name, decimal price, string category, int initialStock)
+
+    public void AddToMenu(string name, decimal price, ProductCategory category, int initialStock)
     {
-        Product newItem = new Product(name, price, category, initialStock);  // Create new product with stock
-        products.Add(newItem);                                               // Add it to the menu
-        Console.WriteLine($"Added {name} to menu with {initialStock} items in stock");
+        var newProduct = new Product(name, price, category, initialStock);
+        products.Add(newProduct);
+        Console.WriteLine($"Added {name} to menu with {initialStock} items in stock.");
     }
-    
-    // METHOD: Display all available products with stock status
-    // Purpose: Show customers what they can buy and what's available
+
     public void ShowMenu()
     {
-        // Print menu header with bakery name in uppercase
         Console.WriteLine($"\n=== {Name.ToUpper()} MENU ===");
-        
-        // Loop through all products and number them
-        for(int i = 0; i < products.Count; i++)
+        for (int i = 0; i < products.Count; i++)
         {
-            Console.Write($"{i + 1}. ");     // Print menu number (1, 2, 3, etc.)
-            products[i].Show();              // Print product details with stock info
-            // Note: i + 1 because arrays start at 0 but we want menu to start at 1
+            Console.Write($"{i + 1}. ");
+            products[i].Show();
         }
-        
-        Console.WriteLine(); // Empty line for spacing
+        Console.WriteLine();
     }
-    
-    // METHOD: Get a specific product by menu number
-    // Purpose: Let customers select items by number (1, 2, 3, etc.)
+
     public Product GetItem(int menuNumber)
     {
-        // Check if the menu number is valid (between 1 and total products)
-        if(menuNumber >= 1 && menuNumber <= products.Count)
-        {
-            return products[menuNumber - 1];  // Return the product (subtract 1 for array index)
-            // Note: Subtract 1 because arrays start at 0 but menu numbers start at 1
-        }
-        return null;  // Return null if invalid menu number
-        // Note: null means "nothing" - indicates the menu number was invalid
+        if (menuNumber >= 1 && menuNumber <= products.Count)
+            return products[menuNumber - 1];
+        return null;
     }
-    
-    // METHOD: Start a new order for a customer
-    // Purpose: Begin the ordering process for someone who wants to buy something
+
     public Order NewOrder(string customerName, string phone = "")
     {
-        Customer customer = new Customer(customerName, phone);  // Create customer object
-        Order order = new Order(customer);                      // Create order for this customer
-        todaysOrders.Add(order);                               // Add order to today's list
-        
-        // Confirm that we started the order
-        Console.WriteLine($"Started order for {customerName}");
-        
-        return order;  // Return the order so we can add items to it
+        var customer = new Customer(customerName, phone);
+        var order = new Order(customer);
+        todaysOrders.Add(order);
+        Console.WriteLine($"Started order for {customer.Name}");
+        return order;
     }
-    
-    // METHOD: Restock a product by menu number
-    // Purpose: Add more inventory when we get new deliveries
+
     public void Restock(int menuNumber, int amount)
     {
-        Product item = GetItem(menuNumber);  // Get the product
+        var item = GetItem(menuNumber);
         if (item != null)
         {
-            item.Stock += amount;  // Add to existing stock
+            item.Restock(amount);
             Console.WriteLine($"Restocked {item.Name}. New stock: {item.Stock}");
         }
         else
         {
-            Console.WriteLine("Invalid menu number for restocking");
+            Console.WriteLine("Invalid menu number for restocking.");
         }
     }
-    
-    // METHOD: Show summary of today's business including inventory status
-    // Purpose: See how well the bakery did today and what needs restocking
+
+    /// <summary>
+    /// More detailed daily summary: includes best sellers, low stock, and total sales.
+    /// </summary>
     public void DailySummary()
     {
-        // Print summary header
         Console.WriteLine($"\n=== TODAY'S SUMMARY FOR {Name} ===");
-        
-        // Show how many orders we took today
         Console.WriteLine($"Total Orders: {todaysOrders.Count}");
-        
-        decimal totalSales = 0;               // Variable to track total money made
-        foreach(var order in todaysOrders)    // Loop through each order from today
-        {
-            totalSales += order.Total();      // Add each order's total to overall sales
-        }
-        
-        // Show total money made today
-        Console.WriteLine($"Total Sales: ${totalSales}");
-        
-        // Calculate and show average order size
-        // Note: Check if we have orders to avoid dividing by zero
-        decimal averageOrder = todaysOrders.Count > 0 ? totalSales / todaysOrders.Count : 0;
-        Console.WriteLine($"Average Order: ${averageOrder:F2}");
-        // Note: :F2 formats the number to show exactly 2 decimal places
-        
-        // Show inventory status
+
+        decimal totalSales = todaysOrders.Sum(o => o.Total());
+        Console.WriteLine($"Total Sales: {totalSales:C}");
+
+        decimal averageOrder = todaysOrders.Any() ? totalSales / todaysOrders.Count : 0;
+        Console.WriteLine($"Average Order: {averageOrder:C2}");
+
+        // Best seller
+        var bestSeller = todaysOrders
+            .SelectMany(o => o.Items)
+            .GroupBy(i => i.Product.Name)
+            .OrderByDescending(g => g.Sum(x => x.Quantity))
+            .FirstOrDefault();
+
+        if (bestSeller != null)
+            Console.WriteLine($"Best Seller: {bestSeller.Key} ({bestSeller.Sum(x => x.Quantity)} sold)");
+
+        // Inventory status
         Console.WriteLine("\n--- INVENTORY STATUS ---");
-        foreach(var product in products)
+        foreach (var product in products)
         {
             if (product.Stock == 0)
-            {
                 Console.WriteLine($"⚠️  {product.Name}: OUT OF STOCK!");
-            }
-            else if (product.Stock <= 2)  // Low stock warning
-            {
+            else if (product.Stock <= 2)
                 Console.WriteLine($"⚠️  {product.Name}: LOW STOCK ({product.Stock} left)");
-            }
             else
-            {
                 Console.WriteLine($"✅ {product.Name}: {product.Stock} in stock");
-            }
         }
     }
 }
 
-// MAIN PROGRAM CLASS
-// Purpose: Contains the Main method where the program starts
+/// <summary>
+/// Main entry point. Shows improved input validation and order logic.
+/// </summary>
 class Program
 {
-    // MAIN METHOD: Entry point of the program
-    // Purpose: This is where the program begins running
     static void Main()
     {
-        // STEP 1: Create the bakery business
-        Bakery myShop = new Bakery("Mom's Bakery");  // Create bakery with name
-        
-        // STEP 2: Stock the bakery with products (name, price, category, initial stock)
-        // Add various bakery items with their prices, categories, and how many we have
-        myShop.AddToMenu("Chocolate Chip Cookies", 2.50m, "Cookie", 10);  // 10 cookies in stock
-        myShop.AddToMenu("Sourdough Bread", 4.00m, "Bread", 5);           // 5 loaves in stock
-        myShop.AddToMenu("Birthday Cake", 28.00m, "Cake", 2);             // 2 cakes in stock
-        myShop.AddToMenu("Apple Danish", 3.25m, "Pastry", 8);             // 8 pastries in stock
-        myShop.AddToMenu("Blueberry Muffin", 2.75m, "Muffin", 1);         // Only 1 muffin left!
-        
-        // STEP 3: Show the menu to customers
-        myShop.ShowMenu();  // Display all available products with stock counts
-        
-        // STEP 4: Simulate customers coming in and placing orders
-        
-        // FIRST CUSTOMER: Sarah Wilson
+        Bakery myShop = new Bakery("Mom's Bakery");
+
+        // Add menu items
+        myShop.AddToMenu("Chocolate Chip Cookies", 2.50m, ProductCategory.Cookie, 10);
+        myShop.AddToMenu("Sourdough Bread", 4.00m, ProductCategory.Bread, 5);
+        myShop.AddToMenu("Birthday Cake", 28.00m, ProductCategory.Cake, 2);
+        myShop.AddToMenu("Apple Danish", 3.25m, ProductCategory.Pastry, 8);
+        myShop.AddToMenu("Blueberry Muffin", 2.75m, ProductCategory.Muffin, 1);
+
+        myShop.ShowMenu();
+
+        // Order 1: Sarah Wilson
         Console.WriteLine("--- CUSTOMER 1: Sarah Wilson ---");
-        Order order1 = myShop.NewOrder("Sarah Wilson", "555-0123");
-        order1.TryAdd(myShop.GetItem(1));  // Try to add Chocolate Chip Cookies
-        order1.TryAdd(myShop.GetItem(2));  // Try to add Sourdough Bread
-        order1.TryAdd(myShop.GetItem(5));  // Try to add Blueberry Muffin (only 1 left!)
+        var order1 = myShop.NewOrder("Sarah Wilson", "555-0123");
+        order1.TryAdd(myShop.GetItem(1), 2); // 2 Cookies
+        order1.TryAdd(myShop.GetItem(2), 1); // 1 Bread
+        order1.TryAdd(myShop.GetItem(5), 1); // 1 Muffin
         order1.PrintReceipt();
-        
-        // SECOND CUSTOMER: Mike Johnson (wants the same muffin!)
+
+        // Order 2: Mike Johnson
         Console.WriteLine("--- CUSTOMER 2: Mike Johnson ---");
-        Order order2 = myShop.NewOrder("Mike Johnson");
-        order2.TryAdd(myShop.GetItem(3));  // Try to add Birthday Cake
-        order2.TryAdd(myShop.GetItem(5));  // Try to add Blueberry Muffin (should be sold out now!)
-        order2.TryAdd(myShop.GetItem(4));  // Try to add Apple Danish instead
+        var order2 = myShop.NewOrder("Mike Johnson");
+        order2.TryAdd(myShop.GetItem(3), 1); // 1 Cake
+        order2.TryAdd(myShop.GetItem(5), 1); // 1 Muffin (should be sold out)
+        order2.TryAdd(myShop.GetItem(4), 2); // 2 Danish
         order2.PrintReceipt();
-        
-        // THIRD CUSTOMER: Little Timmy (wants lots of cookies)
+
+        // Order 3: Little Timmy
         Console.WriteLine("--- CUSTOMER 3: Little Timmy ---");
-        Order order3 = myShop.NewOrder("Little Timmy");
-        // Try to buy 3 cookies (we should have enough)
-        order3.TryAdd(myShop.GetItem(1));  // Cookie #1
-        order3.TryAdd(myShop.GetItem(1));  // Cookie #2  
-        order3.TryAdd(myShop.GetItem(1));  // Cookie #3
+        var order3 = myShop.NewOrder("Little Timmy");
+        order3.TryAdd(myShop.GetItem(1), 3); // 3 Cookies
         order3.PrintReceipt();
-        
-        // Show updated menu with current stock levels
+
         Console.WriteLine("\n--- UPDATED MENU AFTER SALES ---");
         myShop.ShowMenu();
-        
-        // STEP 5: Restock some items
+
+        // Restock
         Console.WriteLine("\n--- RESTOCKING ---");
-        myShop.Restock(5, 12);  // Restock muffins (item #5) with 12 more
-        myShop.Restock(1, 20);  // Restock cookies (item #1) with 20 more
-        
-        // Show menu after restocking
+        myShop.Restock(5, 12); // Muffins
+        myShop.Restock(1, 20); // Cookies
+
         Console.WriteLine("\n--- MENU AFTER RESTOCKING ---");
         myShop.ShowMenu();
-        
-        // STEP 6: End of day - show business summary with inventory status
+
+        // Daily Summary
         myShop.DailySummary();
-        
-        // STEP 7: Wait for user to press Enter before closing program
+
         Console.WriteLine("\nPress Enter to close...");
-        Console.ReadLine();  // Wait for user input before ending program
+        Console.ReadLine();
     }
 }
