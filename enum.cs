@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Generic;// gives access to generic data structures fx . lists and dictionaries. here  we use  List<Product> to store multiple products.
 
 /// <summary>
 /// Enum for product categories, making it robust and type-safe.
