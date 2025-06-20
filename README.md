@@ -11,74 +11,97 @@ When I first started learning C# and Object-Oriented Programming (OOP), I strugg
 
 ---
 
-## Features
 
-- **Local Danish Bakery Products**  
-  Sample items include Wienerbrød, Rugbrød, Drømmekage, Kanelsnegl, and Tebirkes.
+#  Hjem Bageri -  Bakery Management System
+## A Danish-Inspired Console App to Learn C# OOP Concepts
 
-- **Inventory Tracking**  
-  Real-time stock updates, restocking, and out-of-stock notifications.
+A simple console-based bakery ordering system in C# by using Oop Concepts, designed to help manage products, customer orders, restocking, and daily summaries.
 
-- **Order Management with Receipt Generation**  
-  Simulate live orders, generate receipts, and deduct stock accordingly.
+## 📋 Features
 
-- **Daily Summary Report**  
-  Get a summary at the end of the day with total sales, average order size, and current stock.
-
-- **Prices in DKK**  
-  All prices are shown in Danish Krone.
-
----
-
-## Sample Products & Prices
-
-| Product        | Price (DKK) |
-| -------------- | ----------: |
-| Wienerbrød     |      22.00  |
-| Rugbrød        |      30.00  |
-| Drømmekage     |      35.00  |
-| Kanelsnegl     |      18.50  |
-| Tebirkes       |      15.00  |
+- Add and manage bakery products
+- Create customer orders with stock checking
+- Automatically updates stock levels
+- Restock products
+- View detailed receipts
+- Show daily sales summary
+- Menu-based interface for better user experience
 
 ---
 
-## Sample Output
+##  How to Run
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https/github.com/SunithaKottayil/Sunitha-Kottayil.github.io
+   cd hjem-bageri
+   ```
+
+2. **Build and Run the Project:**
+
+   - Open the solution in **Visual Studio**, or
+   - Compile from terminal:
+
+     ```bash
+     dotnet build
+     dotnet run
+     ```
+
+---
+
+##  Project Structure
 
 ```plaintext
-===== Welcome to the Danish Bakery =====
-Product Menu:
-1. Wienerbrød    (Stock: 10) - 22.00 DKK
-2. Rugbrød       (Stock: 8)  - 30.00 DKK
-3. Drømmekage    (Stock: 5)  - 35.00 DKK
-4. Kanelsnegl    (Stock: 12) - 18.50 DKK
-5. Tebirkes      (Stock: 15) - 15.00 DKK
+Bakery.cs       # Core classes: Product, Customer, Order, Bakery
+Program.cs      # Contains Main() and the interactive menu
+Categories.cs   # Contains fixed product category names (e.g., Cake, Bread)
+```
 
-Enter product number to order (0 to finish): 1
-Enter quantity: 2
+---
 
-Added 2 x Wienerbrød to your order.
+## 🧁 Example Menu Flow
 
-Enter product number to order (0 to finish): 5
-Enter quantity: 3
+When you run the app, you'll see:
 
-Added 3 x Tebirkes to your order.
+```
+=== HJEM BAGERI MENU ===
+1. Show Product Menu
+2. Make New Order
+3. Restock Item
+4. Daily Summary
+5. Exit
+```
 
-Enter product number to order (0 to finish): 0
+---
 
---- Order Receipt ---
-2 x Wienerbrød   @ 22.00 DKK = 44.00 DKK
-3 x Tebirkes     @ 15.00 DKK = 45.00 DKK
-Total: 89.00 DKK
+## ✅ Sample Product List
 
-Thank you for your order!
+| Name           | Category | Price (DKK) | Stock |
+|----------------|----------|-------------|--------|
+| Rugbrød        | Brød     | 25.00       | 6      |
+| Drømmekage     | Kage     | 32.00       | 4      |
+| Hindbærsnitte  | Småkage  | 12.00       | 3      |
+| BlåbærMuffin   | Muffin   | 20.00       | 5      |
 
-===== End of Day Summary =====
-Total Orders: 4
-Total Sales: 256.00 DKK
-Average Order Size: 64.00 DKK
-Remaining Stock:
-Wienerbrød: 8
-Rugbrød: 8
-Drømmekage: 5
-Kanelsnegl: 12
-Tebirkes: 12
+---
+
+## 🛠 Technologies Used
+
+- C# (.NET 6+)
+- Console-based UI
+
+---
+
+##  Future Improvements
+
+- Save/load orders to a file or database
+- Support for removing products
+- Admin login for restocking
+- Unit tests for key features
+
+---
+
+## 📄 License
+
+MIT License — free to use and modify. Attribution appreciated. 😊
