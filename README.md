@@ -1,44 +1,84 @@
-# Oops---C# !!!!!!!!!!!!!
-Bakery Management System
 
-A simple C# console application that simulates a real bakery's ordering and inventory system with Danish cultural flavor
+# Bakery Management System
+## A Danish-Inspired Console App to Learn C# OOP Concepts
 
-I was struggling with OOP concepts while learning C#. Even though it seemed easy while reading the theoretical concepts, it was too difficult to write code to use and explain these concepts. So I decided to build something I could actually visualize - a bakery system (got inspired from one of the videos I've seen).
+Welcome to the **Bakery Management System**—a simple C# console application designed to simulate a real bakery's ordering and inventory system with a Danish cultural flavor.
 
-Turns out it really helped me understand
+---
 
+### Why This Project?
+When I first started learning C# and Object-Oriented Programming (OOP), I struggled to apply theoretical concepts in code. To bridge this gap, I decided to build a hands-on project. Developing this small system not only enhanced my understanding of OOP but also made learning enjoyable.
 
+---
 
-Features:
-Local Danish bakery products (e.g., Wienerbrød, Rugbrød)
+## Features
 
-Inventory tracking
+- **Local Danish Bakery Products**  
+  Sample items include Wienerbrød, Rugbrød, Drømmekage, Kanelsnegl, and Tebirkes.
 
-Order management with receipt generation
+- **Inventory Tracking**  
+  Real-time stock updates, restocking, and out-of-stock notifications.
 
-Daily summary with total sales and stock report
+- **Order Management with Receipt Generation**  
+  Simulate live orders, generate receipts, and deduct stock accordingly.
 
-Prices shown in DKK (Danish Krone)
+- **Daily Summary Report**  
+  Get a summary at the end of the day with total sales, average order size, and current stock.
 
-Sample Products:
-Wienerbrød – 22 DKK
+- **Prices in DKK**  
+  All prices are shown in Danish Krone.
 
-Rugbrød – 30 DKK
+---
 
-Drømmekage – 35 DKK
+## Sample Products & Prices
 
-Kanelsnegl – 18.50 DKK
+| Product        | Price (DKK) |
+| -------------- | ----------: |
+| Wienerbrød     |      22.00  |
+| Rugbrød        |      30.00  |
+| Drømmekage     |      35.00  |
+| Kanelsnegl     |      18.50  |
+| Tebirkes       |      15.00  |
 
-Tebirkes – 15 DKK
+---
 
-Output Includes:
-Menu with stock info
+## Sample Output
 
-Live order simulation with stock deduction
+```plaintext
+===== Welcome to the Danish Bakery =====
+Product Menu:
+1. Wienerbrød    (Stock: 10) - 22.00 DKK
+2. Rugbrød       (Stock: 8)  - 30.00 DKK
+3. Drømmekage    (Stock: 5)  - 35.00 DKK
+4. Kanelsnegl    (Stock: 12) - 18.50 DKK
+5. Tebirkes      (Stock: 15) - 15.00 DKK
 
-Restocking
+Enter product number to order (0 to finish): 1
+Enter quantity: 2
 
-Daily summary with average order size and salesWhat it does
+Added 2 x Wienerbrød to your order.
 
+Enter product number to order (0 to finish): 5
+Enter quantity: 3
 
+Added 3 x Tebirkes to your order.
 
+Enter product number to order (0 to finish): 0
+
+--- Order Receipt ---
+2 x Wienerbrød   @ 22.00 DKK = 44.00 DKK
+3 x Tebirkes     @ 15.00 DKK = 45.00 DKK
+Total: 89.00 DKK
+
+Thank you for your order!
+
+===== End of Day Summary =====
+Total Orders: 4
+Total Sales: 256.00 DKK
+Average Order Size: 64.00 DKK
+Remaining Stock:
+Wienerbrød: 8
+Rugbrød: 8
+Drømmekage: 5
+Kanelsnegl: 12
+Tebirkes: 12
